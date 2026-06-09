@@ -1,0 +1,3 @@
+Arquivo de texto simples para testar o loader de texto.
+Segunda linha do arquivo de teste.
+Terceira linha com acentuação: ção.
