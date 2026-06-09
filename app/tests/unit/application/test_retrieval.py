@@ -80,7 +80,9 @@ class TestRetrievalService:
         await service.retrieve(query)
 
         _call_kwargs = mock_vector_store.search.call_args.kwargs
-        assert _call_kwargs["filter_"] == {"user_id": "user123"}
+        assert "_should" in _call_kwargs["filter_"]
+        assert {"user_id": "user123"} in _call_kwargs["filter_"]["_should"]
+        assert {"is_public": True} in _call_kwargs["filter_"]["_should"]
 
     @pytest.mark.asyncio
     async def test_retrieve_with_custom_filter(self, mock_embedder, mock_vector_store, config):

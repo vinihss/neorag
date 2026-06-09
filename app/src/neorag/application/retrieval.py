@@ -37,8 +37,12 @@ class RetrievalService:
 
     async def retrieve(self, query: Query) -> list[ScoredChunk]:
         filter_ = query.filter.copy()
+
         if query.user_id:
-            filter_["user_id"] = query.user_id
+            filter_["_should"] = [
+                {"user_id": query.user_id},
+                {"is_public": True},
+            ]
 
         alpha = self._config.alpha
 

@@ -96,11 +96,16 @@ class QdrantStore(VectorStore):
     def _build_filter(
         self, filter_dict: dict[str, Any]
     ) -> Filter:
-        conditions: list[FieldCondition] = []
+        must: list[FieldCondition] = []
+        should: list[FieldCondition] = []
+
         for key, value in filter_dict.items():
-            if isinstance(value, dict):
+            if key == "_should":
+                for condition in value:
+                    should.append(self._make_condition(condition))
+            elif isinstance(value, dict):
                 if "gte" in value or "lte" in value:
-                    conditions.append(
+                    must.append(
                         FieldCondition(
                             key=key,
                             range=Range(
@@ -110,10 +115,16 @@ class QdrantStore(VectorStore):
                         )
                     )
             else:
-                conditions.append(
-                    FieldCondition(
-                        key=key,
-                        match=MatchValue(value=value),
-                    )
-                )
-        return Filter(must=conditions)
+                must.append(self._make_field_condition(key, value))
+
+        if should:
+            return Filter(must=must or None, should=should)
+        return Filter(must=must or None)
+
+    def _make_condition(self, item: dict[str, Any]) -> FieldCondition:
+        for key, value in item.items():
+            return self._make_field_condition(key, value)
+        return FieldCondition(key="", match=MatchValue(value=""))
+
+    def _make_field_condition(self, key: str, value: Any) -> FieldCondition:
+        return FieldCondition(key=key, match=MatchValue(value=value))

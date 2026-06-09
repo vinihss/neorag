@@ -1,5 +1,7 @@
+from neorag.application.agent import Agent
 from neorag.application.generation import GenerationService
 from neorag.application.retrieval import RetrievalService
+from neorag.application.tools import SearchDocumentsTool, ToolRegistry
 from neorag.config import Settings
 from neorag.domain.ports import DocumentLoader, Embedder, LLM, SessionRepository, VectorStore
 from neorag.infrastructure.generation.llms.factory import LLMFactory
@@ -79,6 +81,11 @@ class Container:
 
     def chunker(self) -> Chunker:
         return ChunkerFactory.create("recursive")
+
+    def agent(self) -> Agent:
+        tools = ToolRegistry()
+        tools.register(SearchDocumentsTool(retrieval=self.retrieval_service()))
+        return Agent(llm=self.llm(), tools=tools)
 
     def generation_service(self) -> GenerationService:
         return GenerationService(

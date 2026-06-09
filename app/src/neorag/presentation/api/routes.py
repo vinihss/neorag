@@ -15,6 +15,7 @@ class AskRequest(BaseModel):
     session_id: str = "default"
     user_id: str | None = None
     top_k: int = 5
+    agentic: bool = False
 
 
 class AskResponse(BaseModel):
@@ -44,17 +45,21 @@ async def ask(
     request: Request,
 ):
     container = _get_container(request)
-    gen = container.generation_service()
 
-    query = Query(
-        text=req.question,
-        top_k=req.top_k,
-        user_id=req.user_id,
-    )
-    if req.session_id != "default":
-        query.filter["session_id"] = req.session_id
-
-    answer = await gen.answer(query)
+    if req.agentic:
+        agent = container.agent()
+        answer = await agent.run(req.question, session_id=req.session_id)
+    else:
+        gen = container.generation_service()
+        query = Query(
+            text=req.question,
+            top_k=req.top_k,
+            user_id=req.user_id,
+        )
+        query.filter["is_public"] = True
+        if req.user_id:
+            query.filter["user_id"] = req.user_id
+        answer = await gen.answer(query)
 
     return AskResponse(
         answer=answer.text,
@@ -76,6 +81,8 @@ async def ask(
 async def upload(
     file: UploadFile = File(...),
     session_id: str = Form("default"),
+    user_id: str | None = Form(None),
+    is_public: bool = Form(True),
     request: Request = None,
 ):
     container = _get_container(request)
@@ -107,6 +114,8 @@ async def upload(
                 "source": c.source or file.filename,
                 "page": c.page,
                 "session_id": session_id,
+                "user_id": user_id or "",
+                "is_public": is_public,
                 "doc_type": c.metadata.get("doc_type", ""),
             }
             for c, v in zip(chunks, vectors)
