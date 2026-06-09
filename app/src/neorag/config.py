@@ -37,6 +37,19 @@ class SessionConfig(BaseModel):
     db_path: str = "data/sessions.db"
 
 
+class EvaluationConfig(BaseModel):
+    type: Literal["ragas"] = "ragas"
+    metrics: list[str] = Field(
+        default_factory=lambda: [
+            "faithfulness",
+            "answer_relevancy",
+            "context_precision",
+            "context_recall",
+        ]
+    )
+    dataset_path: str = "data/eval_dataset.json"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_nested_delimiter="__",
@@ -49,3 +62,4 @@ class Settings(BaseSettings):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
     session: SessionConfig = Field(default_factory=SessionConfig)
+    evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)
