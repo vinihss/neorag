@@ -1,7 +1,10 @@
+from neorag.application.generation import GenerationService
 from neorag.application.retrieval import RetrievalService
 from neorag.config import Settings
-from neorag.domain.ports import Embedder, VectorStore
+from neorag.domain.ports import Embedder, LLM, SessionRepository, VectorStore
+from neorag.infrastructure.generation.llms.factory import LLMFactory
 from neorag.infrastructure.ingestion.embedders.factory import EmbedderFactory
+from neorag.infrastructure.persistence.sqlite_session import SQLiteSessionRepository
 from neorag.infrastructure.retrieval.rerankers.base import Reranker
 from neorag.infrastructure.retrieval.vector_stores.factory import VectorStoreFactory
 
@@ -42,4 +45,25 @@ class Container:
             config=self.config.retrieval,
             reranker=self.reranker(),
             collection_name=self.config.qdrant.collection_name,
+        )
+
+    def llm(self) -> LLM:
+        cfg = self.config.llm
+        return LLMFactory.create(
+            cfg.type,
+            base_url=cfg.base_url,
+            model=cfg.model,
+            temperature=cfg.temperature,
+            max_tokens=cfg.max_tokens,
+        )
+
+    def session_repo(self) -> SessionRepository:
+        cfg = self.config.session
+        return SQLiteSessionRepository(db_path=cfg.db_path)
+
+    def generation_service(self) -> GenerationService:
+        return GenerationService(
+            llm=self.llm(),
+            retrieval=self.retrieval_service(),
+            session_repo=self.session_repo(),
         )
