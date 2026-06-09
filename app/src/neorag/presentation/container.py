@@ -1,12 +1,24 @@
 from neorag.application.generation import GenerationService
 from neorag.application.retrieval import RetrievalService
 from neorag.config import Settings
-from neorag.domain.ports import Embedder, LLM, SessionRepository, VectorStore
+from neorag.domain.ports import DocumentLoader, Embedder, LLM, SessionRepository, VectorStore
 from neorag.infrastructure.generation.llms.factory import LLMFactory
+from neorag.infrastructure.ingestion.chunkers.base import Chunker
+from neorag.infrastructure.ingestion.chunkers.factory import ChunkerFactory
 from neorag.infrastructure.ingestion.embedders.factory import EmbedderFactory
+from neorag.infrastructure.ingestion.loaders.factory import LoaderFactory
 from neorag.infrastructure.persistence.sqlite_session import SQLiteSessionRepository
 from neorag.infrastructure.retrieval.rerankers.base import Reranker
 from neorag.infrastructure.retrieval.vector_stores.factory import VectorStoreFactory
+
+_EXT_MAP: dict[str, str] = {
+    "pdf": "pdf",
+    "html": "html",
+    "htm": "html",
+    "md": "markdown",
+    "txt": "text",
+    "docx": "docx",
+}
 
 
 class Container:
@@ -60,6 +72,13 @@ class Container:
     def session_repo(self) -> SessionRepository:
         cfg = self.config.session
         return SQLiteSessionRepository(db_path=cfg.db_path)
+
+    def loader_for(self, ext: str) -> DocumentLoader:
+        name = _EXT_MAP.get(ext, "text")
+        return LoaderFactory.create(name)
+
+    def chunker(self) -> Chunker:
+        return ChunkerFactory.create("recursive")
 
     def generation_service(self) -> GenerationService:
         return GenerationService(

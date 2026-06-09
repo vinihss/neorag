@@ -36,3 +36,12 @@ services:
         condition: service_healthy
     volumes:
       - ./data:/app/data
+
+  ui:
+    build: ./ui
+    ports:
+      - "8501:8501"
+    depends_on:
+      - app
+    environment:
+      - API_URL=http://app:8000
