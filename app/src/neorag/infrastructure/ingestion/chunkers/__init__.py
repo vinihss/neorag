@@ -1,1 +1,1 @@
-from neorag.infrastructure.ingestion.chunkers.recursive import RecursiveChunker
+from neorag.infrastructure.ingestion.chunkers.recursive import RecursiveChunker as RecursiveChunker

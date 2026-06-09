@@ -1,6 +1,6 @@
 import pytest
 
-from neorag.domain.entities import Document, Chunk
+from neorag.domain.entities import Document
 from neorag.infrastructure.ingestion.chunkers.factory import ChunkerFactory
 from neorag.infrastructure.ingestion.chunkers.recursive import RecursiveChunker
 

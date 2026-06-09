@@ -1,2 +1,2 @@
-from neorag.infrastructure.ingestion.embedders.bge_m3 import BGEM3Embedder
-from neorag.infrastructure.ingestion.embedders.sentence_transformer import SentenceTransformerEmbedder
+from neorag.infrastructure.ingestion.embedders.bge_m3 import BGEM3Embedder as BGEM3Embedder
+from neorag.infrastructure.ingestion.embedders.sentence_transformer import SentenceTransformerEmbedder as SentenceTransformerEmbedder
